@@ -1,0 +1,163 @@
+*Replication Code for selected results in: "Climate Change Risk Perceptions and Agricultural Adaptation Strategies in Vulnerable Riverine Char Islands of Bangladesh";
+*Authors: Ahmed, Guha, Shew, and Alam
+*Contact: zobaer.ahmed@smail.astate.edu
+*2020-09-14
+
+*Directories: create and define your path to data and output folders;
+
+*****************************
+*Required packages and steps
+*****************************
+
+library("ggplot2")
+library("GSODR")
+
+tbar_stations <- nearest_stations(LAT = 25.343974, LON = 89.629931, distance = 75)
+tbar <- get_GSOD(years = c(2000:2020), station = tbar_stations)
+print(tbar)
+View(tbar)
+
+write.csv(tbar,"C:/Users/GSODR.csv")
+
+
+********************************************************************************;
+*Figure 3: Gaibandha historical temperature pattern (1990 to 2020);
+********************************************************************************;
+
+out1<-read_csv('C:/Users/gaibandha.csv') %>%
+    mutate(year=format(DATE,'%Y'),
+           month=factor(months(DATE), levels=rev(month.name)),
+           TAVG=ifelse(is.na(TAVG),(TMAX+TMIN)/2,TAVG))
+View(out1)
+
+temp <- ggplot(out1, aes(x = `TAVG`, y = `month`)) +
+  geom_boxplot()+
+  theme_classic()+
+  labs(title='Temperature Variablity in Gaibandha (1990-2020)',
+       caption='Data from Global Surface Summary of the Day (GSOD), 
+       Source: https://catalog.data.gov/dataset/global-surface-summary-of-the-day-gsod',
+       x='Average Temperature (°C)',
+       y='Month')
+
+temp
+
+tiff("temp.tiff", units="in", width=5, height=5, res=300)
+temp
+dev.off()
+
+
+********************************************************************************;
+*Figure 4: Gaibandha historical rainfall pattern (1990 to 2020);
+********************************************************************************;
+
+rain <- ggplot(out1, aes(x = `PRCP`, y = `month`)) +
+  geom_boxplot()+
+  theme_classic()+
+  labs(title='Rainfall Variablity in Gaibandha (1990-2020)',
+       caption='Data from Global Surface Summary of the Day (GSOD), 
+       Source: https://catalog.data.gov/dataset/global-surface-summary-of-the-day-gsod',
+       x='Average Rainfall (mm)',
+       y='Month')
+
+rain
+
+tiff("rain.tiff", units="in", width=5, height=5, res=300)
+rain2
+dev.off()
+
+
+
+****************************************************************************************************************;
+*Table 6: Logit regression of drivers influencing farmers' adoption of climate adaptation strategies;
+****************************************************************************************************************;
+
+glmdat3 <- read.csv("logit3.csv")
+
+names(glmdat3)=c("CV", "CD", "AP", "ID", "II", "Age", "Gender", "Education", "Family_size", "Annual_income", "Farm_size", "Farm_types", "Agriculture_years")
+
+str(glmdat3)
+
+glmdat3$CV=as.factor(glmdat3$CV)
+glmdat3$CD=as.factor(glmdat3$CD)
+glmdat3$AP=as.factor(glmdat3$AP)
+glmdat3$ID=as.factor(glmdat3$ID)
+glmdat3$II=as.factor(glmdat3$II)
+glmdat3$Age=as.factor(glmdat3$Age)
+glmdat3$Gender=as.factor(glmdat3$Gender)
+glmdat3$Education=as.factor(glmdat3$Education)
+glmdat3$Family_size=as.factor(glmdat3$Family_size)
+glmdat3$Farm_types=as.factor(glmdat3$Farm_types)
+glmdat3$Agriculture_years=as.factor(glmdat3$Agriculture_years)
+
+str(glmdat3)
+
+glmMod3_1 <- glm (CV~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family = binomial(link = "logit")) 
+glmMod3_2 <- glm (CD~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family = binomial(link = "logit"))
+glmMod3_3 <- glm (AP~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family = binomial(link = "logit"))
+glmMod3_4 <- glm (ID~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family = binomial(link = "logit"))
+glmMod3_5 <- glm (II~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family = binomial(link = "logit"))
+
+library("stargazer")
+
+summary(glmMod3_1)
+summary(glmMod3_2)
+summary(glmMod3_3)
+summary(glmMod3_4)
+summary(glmMod3_5)
+
+stargazer(glmMod3_1, glmMod3_2, glmMod3_3, glmMod3_4, glmMod3_5, type = "text", out = "glm.text")
+
+
+stargazer(glmMod3_1, glmMod3_2, glmMod3_3, glmMod3_4, glmMod3_5, title="Logit Regression Results",
+          dep.var.labels=c("Climate resilient crops Variety","Crop diversification", "Improved agronomic practices", "Income diversification", "Improve irrigation"),
+          covariate.labels=c("Age of HH head (D)", "Male-headed household (D)","Literate HH head (D) ",
+                             "Family size (D)","Household annual income","Farm size (in acres)","Farm owned (D)", "Years of farming experience of the HH head (D)"),
+          ci=FALSE, ci.level=0.90, single.row=TRUE, type = "text") #standard errors in bracket
+
+
+library(broom)
+
+tidy(glmMod3_1)
+tidy(glmMod3_2)
+tidy(glmMod3_3)
+tidy(glmMod3_4)
+tidy(glmMod3_5)
+
+
+fits3 <- list() # Create empty list to store models
+fits3$gmodel3_1 <- glm (CV~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family="binomial")
+fits3$gmodel3_2 <- glm (CD~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family="binomial")
+fits3$gmodel3_3 <- glm (AP~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family="binomial")
+fits3$gmodel3_4 <- glm (ID~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family="binomial")
+fits3$gmodel3_5 <- glm (II~Age+Gender+Education+Family_size+Annual_income+Farm_size+Farm_types+Agriculture_years, data = glmdat3, family="binomial")
+
+
+All3 <- do.call(cbind, lapply(fits2, function(z) summary(z)$coefficients["(Intercept)", ]))
+
+All3
+
+library("jtools")
+
+summ(glmMod3_1)
+summ(glmMod3_2)
+summ(glmMod3_3)
+summ(glmMod3_4)
+summ(glmMod3_5)
+
+library("huxtable")
+
+glm_Output3 <-  export_summs(glmMod3_1, glmMod3_2, glmMod3_3, glmMod3_4, glmMod3_5, scale = TRUE,
+                             error_format = "[{conf.low}, {conf.high}]")
+
+glm_Output3
+
+library(aod)
+
+wald.test(b=coef(object=glmMod3_1), Sigma=vcov(object=glmMod3_1), Terms=2)
+wald.test(b=coef(object=glmMod3_2), Sigma=vcov(object=glmMod3_2), Terms=2)
+wald.test(b=coef(object=glmMod3_3), Sigma=vcov(object=glmMod3_3), Terms=2)
+wald.test(b=coef(object=glmMod3_4), Sigma=vcov(object=glmMod3_4), Terms=2)
+wald.test(b=coef(object=glmMod3_5), Sigma=vcov(object=glmMod3_5), Terms=2)
+
+
+*END Code: for further inquiries, please contact the corresponding authors: zobaer.ahmed@smail.astate.edu
