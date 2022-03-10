@@ -160,4 +160,4 @@ wald.test(b=coef(object=glmMod3_4), Sigma=vcov(object=glmMod3_4), Terms=2)
 wald.test(b=coef(object=glmMod3_5), Sigma=vcov(object=glmMod3_5), Terms=2)
 
 
-*END Code: for further inquiries, please contact the corresponding authors: zobaer.ahmed@smail.astate.edu
+*END Code: for further inquiries, please contact the corresponding authors: zobaera@uark.edu
